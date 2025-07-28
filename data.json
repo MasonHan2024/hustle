@@ -1,0 +1,194 @@
+{
+  "name": "data",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "=http://198.18.0.1:8000/fetch-data/cny/{{ $('Edit Fields').item.json.days }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -200,
+        80
+      ],
+      "id": "2f72dad3-ca9d-47f8-8565-764d279f0453",
+      "name": "cny1"
+    },
+    {
+      "parameters": {
+        "url": "=http://198.18.0.1:8000/fetch-data/cnh/{{ $('Edit Fields').item.json.days }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        160,
+        80
+      ],
+      "id": "de55173d-c6c5-4f77-87f7-3c0017b7ee08",
+      "name": "cnh"
+    },
+    {
+      "parameters": {
+        "url": "=http://198.18.0.1:8000/fetch-data/twd/{{ $('Edit Fields').item.json.days }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -40,
+        80
+      ],
+      "id": "d826cd27-1588-4f93-884a-331bd7ab122e",
+      "name": "twd1"
+    },
+    {
+      "parameters": {
+        "url": "=http://198.18.0.1:8000/fetch-data/jpy/{{ $json.days }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -360,
+        80
+      ],
+      "id": "f1281f35-0e0b-4460-8bf4-45e5e3c3e62e",
+      "name": "jpy1"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -740,
+        80
+      ],
+      "id": "237397b6-73ec-4895-8621-b05b9a6413b1",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "http://198.18.0.1:8000/predict",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        80
+      ],
+      "id": "b4226f5f-f142-4f93-82f9-b41369935f7d",
+      "name": "predict"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "64672293-66e3-4789-94f4-76e601ba692f",
+              "name": "days",
+              "value": 60,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -480,
+        100
+      ],
+      "id": "1e104439-91fd-46c0-aca7-36141043528c",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "cny1": {
+      "main": [
+        [
+          {
+            "node": "twd1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "cnh": {
+      "main": [
+        [
+          {
+            "node": "predict",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "twd1": {
+      "main": [
+        [
+          {
+            "node": "cnh",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "jpy1": {
+      "main": [
+        [
+          {
+            "node": "cny1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "jpy1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "81654ef0-656a-494e-83d9-f7adb80dc8eb",
+  "meta": {
+    "instanceId": "5a0a8368508e65c9e8ded88b205f493444df4e41b67e93e0a2a1102a8e99df6b"
+  },
+  "id": "j1njmTxQMfBu2YFn",
+  "tags": []
+}

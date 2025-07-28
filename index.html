@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>对账总结助手</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
+      padding: 40px;
+      max-width: 700px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    p.description {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 30px;
+    }
+    form {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-bottom: 20px;
+      font-weight: bold;
+      color: #333;
+    }
+    input[type="file"],
+    input[type="text"] {
+      display: block;
+      margin-top: 8px;
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px 20px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .success-message {
+      display: none;
+      background: #dff0d8;
+      color: #3c763d;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 20px;
+      text-align: left;
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 13px;
+    }
+    pre {
+      background: #f0f0f0;
+      padding: 10px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>📊 对账总结助手</h1>
+  <p class="description">请上传所有账单，助手将自动汇总并将对账表以 Excel 格式发送到您的邮箱📬</p>
+
+  <form id="accountingForm">
+    <label>📁 台账文件（仅限一个）：<input type="file" name="main" accept=".xlsx" required></label>
+    <label>🚗 滴滴账单（仅限一个）：<input type="file" name="didi" accept=".xlsx" required></label>
+    <label>🍔 美团账单（按住 Shift 可多选）：<input type="file" name="meituan" accept=".xlsx" multiple required></label>
+    <label>📧 收件邮箱地址（多个邮箱请用英文逗号 ","分隔）：<input type="text" name="email" placeholder="例如：a@example.com, b@example.com" pattern="^([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\s*,\\s*)*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})$" required></label>
+    
+    <button type="submit">📨 提交账单</button>
+    <div id="successMessage" class="success-message"></div>
+  </form>
+
+  <div class="logic-box">
+    <h3>📌 数据处理逻辑说明</h3>
+    <p><strong>台账文件</strong>：取第一个sheet,提取字段「姓名」、「公司别」、「(机票/火车票)美团202611」、「(住宿费)美团202611」、「(交通费)滴滴202754」并计算对应票款、住宿费、滴滴金额。</p>
+    <p><strong>滴滴账单</strong>：仅统计「用车制度」为"差旅打车"类型的「下单人姓名」与「实际车费金额」，按人名汇总。</p>
+    <p><strong>美团账单</strong>：从「国内机票」、「火车票」、「酒店」三个 sheet 中分别提取乘机人、乘车人、入住人及其「订单实付金额（企业）」字段，公司编码匹配逻辑如下：</p>
+    <table border="1" cellpadding="5" cellspacing="0">
+      <tr><th>公司名称包含</th><th>分公司编码</th></tr>
+      <tr><td>经开</td><td>武汉经开 → 165G</td></tr>
+      <tr><td>大连 + 成都</td><td>大连成都 → 16DC</td></tr>
+      <tr><td>大连 + 北京</td><td>大连北京 → 16DA</td></tr>
+      <tr><td>北京</td><td>武汉北京 → 165A</td></tr>
+      <tr><td>广州</td><td>武汉广州 → 165M</td></tr>
+      <tr><td>深圳</td><td>武汉深圳 → 165R</td></tr>
+      <tr><td>其他情况</td><td>武汉 → 1650</td></tr>
+    </table>
+    <p><strong>输出格式</strong>：输出为 report.xlsx 档案，每个 sheet 以对应分公司号命名分隔（如 165G、16DC)。表格中的差异数值均按 账单金额 - 台账金额 计算。差异原因会备注若有一名员工,公号仅与美团/滴滴账单或台账上出现</p>
+  </div>
+
+  <script>
+    document.getElementById('accountingForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const successMessage = document.getElementById('successMessage');
+      const submitButton = e.target.querySelector('button');
+      submitButton.disabled = true;
+      submitButton.textContent = '📨 正在提交...';
+
+      try {
+        const formData = new FormData(this);
+        const response = await fetch('http://10.6.2.174:5678/webhook/c3fdbc2c-31cc-4fd5-94e6-e6aa6c0a7edb', {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+        const formatted = JSON.stringify(result, null, 2);
+
+        successMessage.innerHTML = `
+          <strong>📬 邮件已发送，服务器返回以下信息：</strong>
+          <pre>${formatted}</pre>
+        `;
+        successMessage.style.display = 'block';
+        successMessage.style.backgroundColor = '#dff0d8';
+        successMessage.style.color = '#3c763d';
+
+      } catch (error) {
+        successMessage.textContent = '提交时出错，请重试';
+        successMessage.style.display = 'block';
+        successMessage.style.backgroundColor = '#f8d7da';
+        successMessage.style.color = '#721c24';
+      }
+    });
+  </script>
+</body>
+</html>

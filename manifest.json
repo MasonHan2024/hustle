@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "自动履历监听",
+  "version": "1.1",
+  "description": "监控候选人状态变更，并显示在插件中",
+  "permissions": [
+  "cookies",
+  "alarms",
+  "activeTab",
+  "scripting",
+  "storage",
+  "declarativeNetRequest",
+  "declarativeNetRequestWithHostAccess",
+  "offscreen",
+  "notifications",
+  "tabs"
+  ],
+  "host_permissions": [
+    "https://xingchens.jd.com/*",
+    "https://xingchens-admin.jd.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icons/icon.png"
+  },
+  "icons": {
+    "16": "icons/icon.png",
+    "48": "icons/icon.png",
+    "128": "icons/icon.png"
+  }
+
+}

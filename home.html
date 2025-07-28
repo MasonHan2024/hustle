@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>汇率分析系统</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="currency-navbar">
+    <button class="currency-btn active" data-currency="cny">CNY</button>
+    <button class="currency-btn" data-currency="cnh">CNH</button>
+    <button class="currency-btn" data-currency="twd">TWD</button>
+    <button class="currency-btn" data-currency="jpy">JPY</button>
+    <button class="currency-btn" data-currency="company">🏢 公司汇率</button>
+  </div>
+
+  <div class="navbar">
+    <button class="nav-btn active" data-panel="newsPanel">📰 汇率新闻</button>
+    <button class="nav-btn" data-panel="graphPanel">📈 汇率图表</button>
+    <button class="nav-btn" data-panel="analysisPanel">🤖 AI分析师</button>
+    <button class="nav-btn" data-panel="companyByMonth">🗓️ 按月查看</button> 
+    <button class="nav-btn" data-panel="companyByCurrency">💱 按货币查看</button> 
+    <button class="nav-btn" data-panel="uploadRatesPanel">⬆️ 上传档案</button> 
+  </div>
+
+  <!-- Main Content -->
+  <div class="content-container">
+    <!-- News Panel -->
+    <div id="newsPanel" class="content-panel active">
+      <h1><span id="currency-label-news"></span>📰 汇率新闻</h1>
+      <div class="news-container">
+        <div id="news-list"></div>
+      </div>
+    </div>
+
+    <!-- Graph Panel -->
+    <div id="graphPanel" class="content-panel">
+      <h1><span id="currency-label-graph"></span>📊 汇率走势</h1>
+      <canvas id="forexChart"></canvas>
+    </div>
+
+    <!-- AI Analysis Content -->
+    <div id="analysisPanel" class="content-panel">
+      <h1><span id="currency-label-analysis"></span>🧠 技术指标 + AI 分析师总结</h1>
+      <div class="analysis-layout">
+
+        <!-- Moving Averages Block -->
+        <div class="analysis-block">
+          <div class="title-summary-row">
+            <h2>📉 移动平均线 (Moving Averages)</h2>
+            <div id="ma-summary" class="summary-line"></div>
+          </div>
+          <div class="table-analysis-pair">
+            <div class="table-wrapper">
+              <table id="moving-averages-table" class="styled-table"></table>
+            </div>
+            <div id="ma-analysis" class="table-analysis-text"></div>
+          </div>
+        </div>
+
+        <!-- Pivot Points Block -->
+        <div class="analysis-block">
+          <div class="title-summary-row">
+            <h2>⚖️ 枢轴点 (Pivot Points)</h2>
+            <div id="pivot-summary" class="summary-line"></div>
+          </div>
+          <div class="table-analysis-pair">
+            <div class="table-wrapper">
+              <table id="pivot-points-table" class="styled-table"></table>
+            </div>
+            <div id="pivot-analysis" class="table-analysis-text"></div>
+          </div>
+        </div>
+
+        <!-- Technical Indicators Block -->
+        <div class="analysis-block">
+          <div class="title-summary-row">
+            <h2>📊 技术指标</h2>
+            <div id="ti-summary" class="summary-line"></div>
+          </div>
+          <div class="table-analysis-pair">
+            <div class="table-wrapper">
+              <table id="technical-indicators-table" class="styled-table"></table>
+            </div>
+            <div id="ti-analysis" class="table-analysis-text"></div>
+          </div>
+        </div>
+
+        <!-- 综合 AI 分析师总结 -->
+        <div class="analysis-block">
+          <h2>✨ 综合 AI 分析师总结</h2>
+          <div id="combined-analysis" class="table-analysis-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Company Rates Panel (按月份查看) -->
+    <div id="companyByMonth" class="content-panel">
+      <h2>🗓️ 按月份汇率表格</h2>
+      <div class="month-selector">
+        <label for="monthSelect">选择月份:</label>
+        <select id="monthSelect" class="month-dropdown">
+          <!-- Months will be populated by JS -->
+        </select>
+      </div>
+      <div class="company-tables-container">
+        <div id="combined-rates-table"></div>
+      </div>
+    </div>
+
+    <!-- Company Rates Panel (按货币查看) -->
+    <div id="companyByCurrency" class="content-panel">
+      <h2>💱 按货币历史走势</h2>
+      <div class="currency-selector">
+        <label for="currencySelect">选择货币:</label>
+        <select id="currencySelect" class="currency-dropdown">
+          <!-- Currencies will be populated by JS -->
+        </select>
+      </div>
+      <canvas id="companyForexChart"></canvas>
+    </div>
+
+    <div id="uploadRatesPanel" class="content-panel">
+      <h2>📤 上传公司档案</h2>
+      <h3>📌 请一次上传公司所有历史文件</h3>
+      <form
+        id="uploadForm"
+        action="http://localhost:5678/webhook-test/a577588e-3109-4dad-bdf5-8efa7de2defa"
+        method="post"
+        enctype="multipart/form-data"
+      >
+        <label>📄 公司汇率文件(.xls):
+          <input
+            id="companyRatesFile"
+            type="file"
+            name="files"
+            accept=".xls"
+            multiple
+            required
+          >
+        </label>
+        <button type="submit" id="uploadButton">🚀 上传</button>
+      </form>
+      <div id="uploadResult" class="result-message" style="display:none; padding:12px; border-radius:4px;"></div>
+    </div>
+  </div>
+
+  <!-- Chart.js + Adapter -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
+  <script src="main.js"></script>
+</body>
+</html>

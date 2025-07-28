@@ -1,0 +1,1062 @@
+{
+  "name": "news",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "http://198.18.0.1:8000/fetch-news/twd",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -540,
+        480
+      ],
+      "id": "98f73b90-b1c8-402e-a7b5-3cb96ec551cb",
+      "name": "twd"
+    },
+    {
+      "parameters": {
+        "url": "http://198.18.0.1:8000/fetch-news/cny",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -540,
+        80
+      ],
+      "id": "21ff8b08-3bab-4656-a6af-b0753808ebac",
+      "name": "cny"
+    },
+    {
+      "parameters": {
+        "url": "http://198.18.0.1:8000/fetch-news/jpy",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -520,
+        -260
+      ],
+      "id": "17950f24-ea66-4427-8701-cf8d3ab650a4",
+      "name": "jpy"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/data/cny/news.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1080,
+        -100
+      ],
+      "id": "5370ba1c-91fa-4421-b42e-7a7fef154247",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        840,
+        20
+      ],
+      "id": "ddb8230d-364b-4cf0-836d-6fee49bbfbcf",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a7d1ff41-2eda-4d14-9754-f0f06b86a122",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "4d335213-1b93-4924-ba6d-61ccd06fdf12",
+              "name": "time",
+              "value": "={{ $json.time }}",
+              "type": "string"
+            },
+            {
+              "id": "7a98ff82-cba6-4fbb-8280-b53ddfbb7d1b",
+              "name": "link",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "50c74279-a27b-4c1e-87fd-da64e18a2e17",
+              "name": "type",
+              "value": "\"离岸\"",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        200,
+        100
+      ],
+      "id": "54978ea1-2271-44c9-861f-d4b2c786bded",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c204e3a3-a0f0-40af-915c-a530c92e9975",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "929e4aa0-c46f-4bb2-8ff2-6805ec6502f2",
+              "name": "time",
+              "value": "={{ $json.time }}",
+              "type": "string"
+            },
+            {
+              "id": "32338b95-7659-421f-bac7-db9046c650e9",
+              "name": "link",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "afd750c8-cf3d-4014-999b-25cca53f2330",
+              "name": "type",
+              "value": "\"央行\"",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        200,
+        -100
+      ],
+      "id": "26dac535-58fa-4f3b-964f-0fe680b0aff7",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "b879a191-a3d4-4f6b-865f-477f54761430",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/data/jpy/news.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        776,
+        -260
+      ],
+      "id": "d5d8e74d-188c-4479-947e-07a9117aba64",
+      "name": "Read/Write Files from Disk1"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        556,
+        -260
+      ],
+      "id": "60ef4c2e-d1d3-415b-bca8-cbf80cec5b6f",
+      "name": "Convert to File1"
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.title }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "相关:央行",
+              "description": "   - BOJ/Fed policy actions: Rate decisions, YCC, interventions, statements    - Keywords (English/Chinese):       - \"Bank of Japan\"/\"日本银行\", \"YCC\"/\"收益率曲线控制\",       - \"Fed\"/\"美联储\", \"rate hike\"/\"加息\"    - Example titles:      - \"BOJ maintains ultra-easy policy, yen weakens\"      - \"日本央行坚持宽松政策，日元承压\""
+            },
+            {
+              "category": "相关:其他",
+              "description": "   - JPY/USD rate movements (spot, offshore/onshore)    - Macroeconomic data impact (CPI, trade balance)    - Market analysis without direct policy link    - Keywords:      - \"USD/JPY\"/\"美元日元\", \"145 level\"/\"145关口\"      - \"safe haven\"/\"避险\", \"carry trade\"/\"套利交易\"    - Example titles:      - \"Yen strengthens to 150 on risk aversion\"      - \"日元因避险情绪升至150\""
+            },
+            {
+              "category": "不相关",
+              "description": "  - Other financial markets (stocks, crypto)    - Corporate news without macro impact    - General politics without currency mention    - Example titles:      - \"Sony announces new PlayStation\"      - \"东京股市日经指数上涨\""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        -380
+      ],
+      "id": "0c65e929-a5af-4891-b13e-784c1ff98acd",
+      "name": "Text Classifier1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a7d1ff41-2eda-4d14-9754-f0f06b86a122",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "4d335213-1b93-4924-ba6d-61ccd06fdf12",
+              "name": "time",
+              "value": "={{ $json.time }}",
+              "type": "string"
+            },
+            {
+              "id": "7a98ff82-cba6-4fbb-8280-b53ddfbb7d1b",
+              "name": "link",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "50c74279-a27b-4c1e-87fd-da64e18a2e17",
+              "name": "type",
+              "value": "\"其他\"",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        -340
+      ],
+      "id": "ff142f7a-c438-409a-a346-b3c7c451956f",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c204e3a3-a0f0-40af-915c-a530c92e9975",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "929e4aa0-c46f-4bb2-8ff2-6805ec6502f2",
+              "name": "time",
+              "value": "={{ $json.time }}",
+              "type": "string"
+            },
+            {
+              "id": "32338b95-7659-421f-bac7-db9046c650e9",
+              "name": "link",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "afd750c8-cf3d-4014-999b-25cca53f2330",
+              "name": "type",
+              "value": "\"央行\"",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        -460
+      ],
+      "id": "cb6bcb3b-285f-46af-b15c-ce134038da15",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        420,
+        -340
+      ],
+      "id": "2a375a61-4f1d-4e50-a34b-3b1f483348ab",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/data/twd/news.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        800,
+        520
+      ],
+      "id": "2abaff5e-8f74-40ee-975d-9e2531036879",
+      "name": "Read/Write Files from Disk2"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        460,
+        420
+      ],
+      "id": "bfdd0a54-44d1-4bb0-8620-64f8b19c2846",
+      "name": "Convert to File2"
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.title }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "相关:央行",
+              "description": " - Taiwan central bank(CBC)/Fed actions    - Keywords:      - \"CBC\"/\"台湾央行\", \"intervention\"/\"干预\"      - \"Fed\"/\"美联储\", \"NTD\"/\"新台币\"    - Example titles:      - \"Taiwan central bank hints at rate pause\"      - \"台湾央行宣布外汇管制措施\""
+            },
+            {
+              "category": "相关:其他",
+              "description": " - TWD rate movements    - Tech sector/export impacts    - Keywords:      - \"USD/TWD\"/\"美元台币\", \"semiconductors\"/\"半导体\"      - \"32 level\"/\"32大关\"    - Example titles:      - \"Taiwan dollar weakens on export slump\"      - \"台积电营收影响新台币走势\""
+            },
+            {
+              "category": "不相关",
+              "description": "  - Other financial markets (stocks, crypto)    - Corporate news without macro impact    - General politics without currency mention    - Example titles:      - \"Sony announces new PlayStation\"      - \"东京股市日经指数上涨\""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        500
+      ],
+      "id": "6e50719f-8878-4f0c-80af-f3c43f89f545",
+      "name": "Text Classifier2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a7d1ff41-2eda-4d14-9754-f0f06b86a122",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "4d335213-1b93-4924-ba6d-61ccd06fdf12",
+              "name": "time",
+              "value": "={{ $json.time }}",
+              "type": "string"
+            },
+            {
+              "id": "7a98ff82-cba6-4fbb-8280-b53ddfbb7d1b",
+              "name": "link",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "50c74279-a27b-4c1e-87fd-da64e18a2e17",
+              "name": "type",
+              "value": "\"其他\"",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        140,
+        580
+      ],
+      "id": "49327c96-0c82-4f68-b8c3-d00d619363b1",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c204e3a3-a0f0-40af-915c-a530c92e9975",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "929e4aa0-c46f-4bb2-8ff2-6805ec6502f2",
+              "name": "time",
+              "value": "={{ $json.time }}",
+              "type": "string"
+            },
+            {
+              "id": "32338b95-7659-421f-bac7-db9046c650e9",
+              "name": "link",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "afd750c8-cf3d-4014-999b-25cca53f2330",
+              "name": "type",
+              "value": "\"央行\"",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        120,
+        460
+      ],
+      "id": "23ff2d20-5bc3-4331-8071-232abee16a9c",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        300,
+        420
+      ],
+      "id": "888a1584-3fcf-42d1-abdc-374f5a700b07",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a7d1ff41-2eda-4d14-9754-f0f06b86a122",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "4d335213-1b93-4924-ba6d-61ccd06fdf12",
+              "name": "time",
+              "value": "={{ $json.time }}",
+              "type": "string"
+            },
+            {
+              "id": "7a98ff82-cba6-4fbb-8280-b53ddfbb7d1b",
+              "name": "link",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "50c74279-a27b-4c1e-87fd-da64e18a2e17",
+              "name": "type",
+              "value": "\"其他\"",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        200,
+        0
+      ],
+      "id": "827e841c-e3f7-4e40-9a08-30e2145fd654",
+      "name": "Edit Fields6"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        580,
+        120
+      ],
+      "id": "0361094b-53c5-46f6-be12-358ea62c2b8c",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "=Qwen2.5-14B-Instruct",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -260,
+        -160
+      ],
+      "id": "c48e7326-feef-411f-9671-482b22387ef4",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "PDHD4XKSoxPjd1dP",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "=Qwen2.5-14B-Instruct",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -172,
+        260
+      ],
+      "id": "5aca1164-2f4b-492b-8ce3-08bf26eea0a1",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "PDHD4XKSoxPjd1dP",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "=Qwen2.5-14B-Instruct",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -172,
+        760
+      ],
+      "id": "6ccd34c0-2887-4910-8a31-e9401ab035d8",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "PDHD4XKSoxPjd1dP",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/data/cnh/news.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1080,
+        100
+      ],
+      "id": "6562cd80-f983-44f6-92a3-9ae58cd1f223",
+      "name": "Read/Write Files from Disk3"
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.title }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "相关:央行",
+              "description": " - PBOC/Fed direct actions affecting CNY    - Keywords:      - \"PBOC\"/\"人民银行\", \"RRR cut\"/\"降准\"      - \"Fed pivot\"/\"美联储转向\", \"yuan fixing\"/\"中间价\"    - Example titles:      - \"China cuts reserve ratio to support yuan\"      - \"央行下调外汇存款准备金率\""
+            },
+            {
+              "category": "相关:其他",
+              "description": " - CNY rate movements without policy focus    - Economic data impacts    - Keywords:      - \"USD/CNY\"/\"美元人民币\", \"breaches 7.2\"/\"跌破7.2\"      - \"trade surplus\"/\"贸易顺差\"    - Example titles:      - \"Offshore yuan hits 7.3 amid dollar strength\"      - \"人民币盘中跌破7.3\""
+            },
+            {
+              "category": "不相关",
+              "description": "   - Other financial markets (stocks, crypto)    - Corporate news without macro impact    - General politics without currency mention    - Example titles:      - \"Sony announces new PlayStation\"      - \"东京股市日经指数上涨\""
+            },
+            {
+              "category": "相关:离岸",
+              "description": "   - Explicit offshore yuan coverage    - Keywords:      - \"CNH\"/\"离岸人民币\", \"Hong Kong\"/\"香港市场\"    - Example titles:      - \"CNH liquidity tightens in Hong Kong\"      - \"香港离岸人民币隔夜利率飙升\""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        0
+      ],
+      "id": "d8794bfa-7926-4d44-a046-2fb7e510b82f",
+      "name": "Text Classifier3"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -980,
+        -20
+      ],
+      "id": "6f69299f-07c5-411e-95ed-0608c879d128",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "command": "rm -f /data/cny/news.json\nrm -f /data/cnh/news.json"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -680,
+        100
+      ],
+      "id": "4b79dfd3-f052-4176-bb87-a0322bdc30bd",
+      "name": "Execute Command"
+    },
+    {
+      "parameters": {
+        "command": "rm -f /data/jpy/news.json"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -740,
+        -200
+      ],
+      "id": "e84ddaea-fcaa-40ed-adca-968571d8a247",
+      "name": "Execute Command1"
+    },
+    {
+      "parameters": {
+        "command": "rm -f /data/twd/news.json"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -680,
+        380
+      ],
+      "id": "5060b914-444f-4842-ab94-a9ad391647bd",
+      "name": "Execute Command2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "cny": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File1": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Convert to File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "jpy": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File2": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Convert to File2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "twd": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields6": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        []
+      ]
+    },
+    "Text Classifier3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Execute Command",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Execute Command1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Execute Command2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command": {
+      "main": [
+        [
+          {
+            "node": "cny",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command1": {
+      "main": [
+        [
+          {
+            "node": "jpy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command2": {
+      "main": [
+        [
+          {
+            "node": "twd",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "23528a16-f77b-4872-990c-04fcd364da61",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5a0a8368508e65c9e8ded88b205f493444df4e41b67e93e0a2a1102a8e99df6b"
+  },
+  "id": "aOfje6IMkG8VFbGI",
+  "tags": []
+}

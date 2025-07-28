@@ -1,0 +1,279 @@
+{
+  "name": "email_bills",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const XLSX = require('xlsx');\n\n// 1. Read binary buffer\nconst buffer = Buffer.from(items[0].binary.main.data, 'base64');\nconst workbook = XLSX.read(buffer, { type: 'buffer' });\n\n// 2. Read the first sheet as JSON\nconst sheet = workbook.Sheets[workbook.SheetNames[0]];\nconst rows = XLSX.utils.sheet_to_json(sheet, { defval: 0 });\n\n// 3. Group and aggregate data\nconst result = {};\n\nrows.forEach(row => {\n  const name = row['姓名']?.toString().trim();\n  const company = row['公司别']?.toString().trim();\n  if (!name || !company) return;\n\n  const key = `${name}|${company}`;\n  if (!result[key]) {\n    result[key] = {\n      name,\n      company,\n      travel_M: 0,\n      hotel_M: 0,\n      didi_M: 0\n    };\n  }\n\n  const travel = parseFloat(row['(机票/火车票)美团202611']) || 0;\n  const hotel = parseFloat(row['(住宿费)美团202611']) || 0;\n  const didi = parseFloat(row['(交通费)滴滴202754']) || 0;\n\n  result[key].travel_M += travel;\n  result[key].hotel_M += hotel;\n  result[key].didi_M += didi;\n});\n\n// 4. Format and return\nconst output = Object.values(result).map(entry => ({\n  json: {\n    name: entry.name,\n    company: entry.company,\n    travel_M: Math.round(entry.travel_M * 100) / 100,\n    hotel_M: Math.round(entry.hotel_M * 100) / 100,\n    didi_M: Math.round(entry.didi_M * 100) / 100\n  }\n}));\n\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -360,
+        -260
+      ],
+      "id": "06ec12f8-c91c-4131-92ee-0ac639ab1de8",
+      "name": "台账总计"
+    },
+    {
+      "parameters": {
+        "jsCode": "const XLSX = require('xlsx');\n\nconst buffer = Buffer.from(items[0].binary.didi.data, 'base64');\nconst workbook = XLSX.read(buffer, { type: 'buffer' });\n\nconst sheetNames = workbook.SheetNames.slice(1); // skip the first sheet\nconst output = [];\n\nsheetNames.forEach(sheetName => {\n  const sheet = workbook.Sheets[sheetName];\n  const rows = XLSX.utils.sheet_to_json(sheet, { defval: 0 });\n\n  const temp = {};\n\n  rows.forEach(row => {\n    const name = row['下单人姓名']?.toString().trim();\n    const mode = row['用车制度'];\n    let amount = parseFloat(row['实际车费金额']);\n    if (!name || mode !== '差旅打车' || isNaN(amount)) return;\n\n    if (!temp[name]) temp[name] = 0;\n    temp[name] += amount;\n  });\n\n  for (const [name, rawSum] of Object.entries(temp)) {\n    output.push({\n      name,\n      company: sheetName,\n      didi: Math.round(rawSum * 100) / 100\n    });\n  }\n});\n\nreturn output.map(entry => ({ json: entry }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -360,
+        -160
+      ],
+      "id": "7289dd5e-df84-4602-9995-de57cc3101f5",
+      "name": "滴滴总计"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "c3fdbc2c-31cc-4fd5-94e6-e6aa6c0a7edb",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -540,
+        -60
+      ],
+      "id": "596d3f59-e182-4da9-bdf3-9185df35b1f2",
+      "name": "Webhook",
+      "webhookId": "c3fdbc2c-31cc-4fd5-94e6-e6aa6c0a7edb"
+    },
+    {
+      "parameters": {
+        "jsCode": "const XLSX = require('xlsx');\n\nconst sheetConfigs = [\n  { sheet: '国内机票', nameCol: '乘机人', type: 'plane' },\n  { sheet: '火车票', nameCol: '乘车人', type: 'train' },\n  { sheet: '酒店', nameCol: '入住人', type: 'hotel' }\n];\n\nfunction assignCode(company) {\n  if (company.includes('经开')) return '165G';\n  if (company.includes('大连') && company.includes('成都')) return '16DC';\n  if (company.includes('大连') && company.includes('北京')) return '16DA';\n  if (company.includes('北京')) return '165A';\n  if (company.includes('广州')) return '165M';\n  if (company.includes('深圳')) return '165R';\n  return '1650';\n}\n\nconst allOutput = [];\n\nfor (const item of items) {\n  for (const [key, file] of Object.entries(item.binary)) {\n    if (!key.startsWith('meituan')) continue;\n\n    const buffer = Buffer.from(file.data, 'base64');\n    const workbook = XLSX.read(buffer, { type: 'buffer' });\n\n    const companyName = file.fileName.replace('.xlsx', '');\n    const assignedCode = assignCode(companyName);\n\n    const temp = {};\n\n    for (const cfg of sheetConfigs) {\n      const sheet = workbook.Sheets[cfg.sheet];\n      if (!sheet) continue;\n\n      const rows = XLSX.utils.sheet_to_json(sheet, { defval: 0 });\n\n      for (const row of rows) {\n        const name = row[cfg.nameCol]?.toString().trim();\n        if (!name) continue;\n\n        let amount = parseFloat(row['订单实付金额（企业）']);\n        if (isNaN(amount)) amount = 0;\n\n        if (!temp[name]) {\n          temp[name] = {\n            name,\n            company: assignedCode,\n            plane: 0,\n            train: 0,\n            hotel: 0\n          };\n        }\n\n        temp[name][cfg.type] += amount;\n      }\n    }\n\n    // Push results for this file\n    Object.values(temp).forEach(entry => {\n      allOutput.push({\n        json: {\n          name: entry.name,\n          company: entry.company,\n          travel: Math.round((entry.plane + entry.train) * 100) / 100,\n          hotel: Math.round(entry.hotel * 100) / 100\n        }\n      });\n    });\n  }\n}\n\nreturn allOutput;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -360,
+        -60
+      ],
+      "id": "1890a8e6-2cba-4be8-bf73-7d5eba780b5d",
+      "name": "美团总计"
+    },
+    {
+      "parameters": {
+        "jsCode": "const grouped = {};\n\nitems.forEach(item => {\n  const { name, company, travel, hotel, didi, travel_M, hotel_M, didi_M } = item.json;\n  if (!name || !company) return;\n\n  if (!grouped[company]) grouped[company] = {};\n  if (!grouped[company][name]) grouped[company][name] = {\n    meituan: { travel: 0, hotel: 0 },\n    main: { travel: 0, hotel: 0, didi: 0 },\n    didi: 0\n  };\n\n  // 台账（main）fields\n  if (travel_M !== undefined) grouped[company][name].main.travel = travel_M;\n  if (hotel_M !== undefined) grouped[company][name].main.hotel = hotel_M;\n  if (didi_M !== undefined) grouped[company][name].main.didi = didi_M;\n\n  // 美团 fields\n  if (travel !== undefined) grouped[company][name].meituan.travel = travel;\n  if (hotel !== undefined) grouped[company][name].meituan.hotel = hotel;\n\n  // 滴滴 fields (台账中)\n  if (didi !== undefined) grouped[company][name].didi = didi;\n});\n\nconst report = {};\n\nfor (const [company, users] of Object.entries(grouped)) {\n  let totalMeituanTravel = 0;\n  let totalMeituanHotel = 0;\n  let totalDidi = 0;\n\n  let totalMainTravel = 0;\n  let totalMainHotel = 0;\n  let totalMainDidi = 0;\n\n  let totalDiffHotel = 0;\n  let totalDiffTicket = 0;\n  let totalDiffDidi = 0;\n\n  const table = [];\n\n  for (const [name, data] of Object.entries(users)) {\n    const m = data.meituan || {};\n    const t = data.main || {};\n    const d = data.didi ?? 0;\n\n    const meituanTravel = m.travel || 0;\n    const meituanHotel = m.hotel || 0;\n    const mainTravel = t.travel || 0;\n    const mainHotel = t.hotel || 0;\n    const mainDidi = t.didi || 0;\n\n    const diffHotel = Math.round((meituanHotel - mainHotel) * 100) / 100;\n    const diffTicket = Math.round((meituanTravel - mainTravel) * 100) / 100;\n    const diffDidi = Math.round((d - mainDidi) * 100) / 100;\n\n    totalMeituanTravel += meituanTravel;\n    totalMeituanHotel += meituanHotel;\n    totalDidi += d;\n\n    totalMainTravel += mainTravel;\n    totalMainHotel += mainHotel;\n    totalMainDidi += mainDidi;\n\n    totalDiffHotel += diffHotel;\n    totalDiffTicket += diffTicket;\n    totalDiffDidi += diffDidi;\n\n    if (diffHotel !== 0 || diffTicket !== 0 || diffDidi !== 0) {\n      let reason = '';\n    \n      const hasMain = (mainTravel || mainHotel || mainDidi) > 0;\n      const hasMeituan = (meituanTravel || meituanHotel) > 0;\n      const hasDidi = d > 0;\n    \n      if (hasMain && !hasMeituan && !hasDidi) {\n        reason = `此(${name}, ${company}) 仅于台账中出现`;\n      } else if (!hasMain && (hasMeituan || hasDidi)) {\n        reason = `此(${name}, ${company}) 仅于${hasDidi ? '滴滴' : '美团'}账单中出现`;\n      }\n    \n      table.push({\n        姓名: name,\n        住宿费差异: diffHotel,\n        票款差异: diffTicket,\n        滴滴差异: diffDidi,\n        差异原因: reason\n      });\n}\n\n  }\n\n  table.push({\n    姓名: '差额总计',\n    住宿费差异: Math.round(totalDiffHotel * 100) / 100,\n    票款差异: Math.round(totalDiffTicket * 100) / 100,\n    滴滴差异: Math.round(totalDiffDidi * 100) / 100\n  });\n\n  report[company] = {\n    summary: {\n      美团账单票款总金额: Math.round(totalMeituanTravel * 100) / 100,\n      美团账单住宿费总金额: Math.round(totalMeituanHotel * 100) / 100,\n      滴滴账单总金额: Math.round(totalDidi * 100) / 100,\n      台账票款总金额: Math.round(totalMainTravel * 100) / 100,\n      台账住宿费总金额: Math.round(totalMainHotel * 100) / 100,\n      台账滴滴打车总金额: Math.round(totalMainDidi * 100) / 100,\n      票款差异金额: Math.round((totalMeituanTravel - totalMainTravel) * 100) / 100,\n      住宿费差异金额: Math.round((totalMeituanHotel - totalMainHotel) * 100) / 100,\n      滴滴差异金额: Math.round((totalDidi - totalMainDidi) * 100) / 100\n    },\n    table\n  };\n}\n\nreturn [{ json: report }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -40,
+        -220
+      ],
+      "id": "044c8ccc-63b0-416a-a412-285d3b96e86c",
+      "name": "最终汇总"
+    },
+    {
+      "parameters": {
+        "jsCode": "const XLSX = require('xlsx');\n\n// Assume the input is a single JSON report object\nconst report = items[0].json;\n\n// Create a new workbook\nconst workbook = XLSX.utils.book_new();\n\nfor (const [company, data] of Object.entries(report)) {\n  const { summary, table } = data;\n\n  const sheetData = [];\n  // Section 1: Summary (split into 2 columns per item)\nsheetData.push([\n  '美团账单票款总金额', summary['美团账单票款总金额'],\n  '台账票款总金额', summary['台账票款总金额'],\n  '票款差异金额', summary['票款差异金额']\n]);\n\nsheetData.push([\n  '美团账单住宿费总金额', summary['美团账单住宿费总金额'],\n  '台账住宿费总金额', summary['台账住宿费总金额'],\n  '住宿费差异金额', summary['住宿费差异金额']\n]);\n\nsheetData.push([\n  '滴滴账单总金额', summary['滴滴账单总金额'],\n  '台账滴滴打车总金额', summary['台账滴滴打车总金额'],\n  '滴滴差异金额', summary['滴滴差异金额']\n]);\n\n  // Blank row\n  sheetData.push([]);\n\n  // Section 2: Table headers (now with 4 columns)\n  sheetData.push(['公司别', '住宿费差异', '火车票机票差异', '差旅滴滴打车差异', '差异原因']);\n\n  // Section 3: Table content\n  table.forEach(entry => {\n    sheetData.push([\n      entry['姓名'],\n      entry['住宿费差异'],\n      entry['票款差异'],\n      entry['滴滴差异'],\n      entry['差异原因'] || ''\n    ]);\n  });\n\n  // Create sheet\n  const worksheet = XLSX.utils.aoa_to_sheet(sheetData);\n  XLSX.utils.book_append_sheet(workbook, worksheet, company);\n}\n\n// Generate workbook buffer\nconst wbBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });\n\n// Return as binary\nreturn [\n  {\n    binary: {\n      data: {\n        data: wbBuffer.toString('base64'),\n        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',\n        fileName: 'report.xlsx'\n      }\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        -220
+      ],
+      "id": "6208c246-0d30-4bfa-8233-4e5e41321770",
+      "name": "Code"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        60,
+        20
+      ],
+      "id": "597e11c6-7837-483f-8f2f-33418b8f06cd",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "fromEmail": "billrecon@wits.com",
+        "toEmail": "={{ $items()[1].json.body.email }}",
+        "subject": "月度账单对账",
+        "emailFormat": "text",
+        "text": "📎 附件为本月台账对账汇总表。\n\n表格中的差异数值均按 账单金额 - 台账金额 计算。\n如某员工仅出现在台账或账单中，已在“差异原因”列中标注说明。\n\n如有任何疑问，欢迎随时联系 🙏",
+        "options": {
+          "attachments": "data"
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        320,
+        -20
+      ],
+      "id": "62291cb8-5afe-4e8d-84b4-602bf60a4591",
+      "name": "Send Email1",
+      "webhookId": "cc055911-2d8c-42cf-8d3d-de03268fef87",
+      "credentials": {
+        "smtp": {
+          "id": "hpsV0DqeEWTu6Ciw",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -260,
+        -120
+      ],
+      "id": "d0e1473e-8ba6-4d42-8f13-8c04cf09f7d9",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -160,
+        -220
+      ],
+      "id": "9d08bb38-9d01-4da8-95c3-749c899a0a1d",
+      "name": "Merge4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "台账总计",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "滴滴总计",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "美团总计",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "台账总计": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "滴滴总计": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "美团总计": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "最终汇总": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Send Email1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email1": {
+      "main": [
+        []
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "最终汇总",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "179bc15a-0fe0-48a5-a6ab-6a04bd2afaad",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5a0a8368508e65c9e8ded88b205f493444df4e41b67e93e0a2a1102a8e99df6b"
+  },
+  "id": "gy1to6oOyrYiNYbI",
+  "tags": []
+}

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>SpreadJS API Monitor</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      padding: 12px;
+      width: 360px;
+      background-color: #f9f9f9;
+      color: #222;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 6px 10px;
+      font-size: 13px;
+      border: none;
+      background-color: #90c3fa;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #7baadd;
+    }
+
+    #clear-results {
+      background-color: #da757f;
+    }
+
+    #clear-results:hover {
+      background-color: #e0818b;
+    }
+
+    label.switch {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      background-color: #eaeaea;
+      border-radius: 4px;
+      padding: 6px 8px;
+    }
+
+    .section {
+      background: #111;
+      color: #0f0;
+      padding: 8px;
+      border-radius: 4px;
+      height: 120px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 12px;
+      margin-top: 6px;
+      white-space: pre-wrap;
+    }
+
+    h4 {
+      margin: 6px 0 4px;
+      font-size: 13px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="grid">
+    <button id="reset-btn">🔄 初始化数据</button>
+    <button id="clear-results">🧹 清除变更</button>
+    <label class="switch">
+      <input type="checkbox" id="listen-switch">
+      <span id="listen-label">🔇 未监听</span>
+    </label>
+    <label class="switch">
+      <input type="checkbox" id="log-switch">
+      <span>日志显示</span>
+    </label>
+  </div>
+
+  <h4 id="log-title"> 日志输出</h4>
+  <div id="log-box" class="section">加载中...</div> 
+
+  <h4>📋 简历状态变更记录</h4>
+  <div id="resume-result-box" class="section">暂无变化</div>
+
+  <h4>🔔 职位状态变更记录</h4>
+  <div id="issue-result-box" class="section">暂无变化</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

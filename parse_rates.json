@@ -1,0 +1,102 @@
+{
+  "name": "parse_rates",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "a577588e-3109-4dad-bdf5-8efa7de2defa",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -380,
+        -280
+      ],
+      "id": "a861e984-a71b-4924-a4d4-4aa6512eaf58",
+      "name": "Webhook",
+      "webhookId": "a577588e-3109-4dad-bdf5-8efa7de2defa"
+    },
+    {
+      "parameters": {
+        "jsCode": "const XLSX = require('xlsx');\n\n/**\n * Scan rows above headerIdx for a cell containing both \"$1\" and \"NTD\",\n * then return the numeric value in the very next cell.\n * Falls back to 1 if nothing is found.\n */\nfunction extractNtdRate(rows, headerIdx) {\n  for (let i = 0; i < headerIdx; i++) {\n    const row = rows[i];\n    for (let j = 0; j < row.length; j++) {\n      const cell = row[j];\n      if (\n        typeof cell === 'string' &&\n        cell.includes('$1') &&\n        cell.toUpperCase().includes('NTD')\n      ) {\n        const next = row[j + 1];\n        const val  = typeof next === 'number' ? next : parseFloat(next);\n        if (!isNaN(val)) return val;\n      }\n    }\n  }\n  // fallback\n  return 1;\n}\n\nfunction parseBooking(rows) {\n  // 1) locate your header row\n  const headerIdx = rows.findIndex(r =>\n    r.some(c => typeof c === 'string' && c.toLowerCase().includes('currency')) &&\n    r.some(c => typeof c === 'string' && c.toLowerCase().includes('(ntd'))\n  );\n  if (headerIdx === -1) throw new Error('Booking table header not found');\n\n  // 2) extract the official NTD‑per‑USD rate (e.g. $1 = NTD 29.15)\n  const ntdPerUsd = extractNtdRate(rows, headerIdx);\n  // reciprocal: USD‑per‑NTD\n  const usdPerNtd = 1 / ntdPerUsd;\n\n  // 3) find the data‑column indices\n  const header      = rows[headerIdx];\n  const currencyIdx = header.findIndex(h => h?.toLowerCase?.().includes('currency'));\n  const countryIdx  = header.findIndex(h => h?.toLowerCase?.().includes('country'));\n  const ntdIdx      = header.findIndex(h => h?.toLowerCase?.().includes('(ntd'));\n  const usdIdx      = header.findIndex(h => h?.toLowerCase?.().includes('(usd'));\n\n  // 4) parse all real data rows\n  const result = [];\n  for (let i = headerIdx + 1; i < rows.length; i++) {\n    const r      = rows[i];\n    const curr   = r[currencyIdx];\n    const ntdVal = parseFloat(r[ntdIdx]);\n    const usdRaw = parseFloat(r[usdIdx]);\n\n    if (!curr || isNaN(ntdVal) || isNaN(usdRaw)) continue;\n\n    const usdVal = usdRaw > 20 ? 1 / usdRaw : usdRaw;\n    result.push({\n      currency: curr.toString().trim(),\n      country:  (r[countryIdx] || '').toString().trim(),\n      ntd:      ntdVal,\n      usd:      usdVal,\n    });\n  }\n\n  // 5) append the synthetic NTD row, using reciprocal USD-per-NTD\n  result.push({\n    currency: 'NTD',\n    country:  'Taiwan',\n    ntd:      1,\n    usd:      usdPerNtd,\n  });\n\n  return { headerIdx, rates: result };\n}\n\n\nfunction parseEnding(rows) {\n  const headerIdx = rows.findIndex(r =>\n    r.some(c => typeof c === 'string' && c.toLowerCase().includes('currency')) &&\n    r.some(c => typeof c === 'string' && c.toLowerCase().includes('ytd'))\n  );\n  if (headerIdx === -1) throw new Error('Ending table header not found');\n\n  const result = [];\n  for (let i = headerIdx + 1; i < rows.length; i++) {\n    const r = rows[i];\n    const currency = r[0];\n    const monthly  = parseFloat(r[1]);\n    const ytd      = parseFloat(r[2]);\n\n    if (!currency || isNaN(monthly) || isNaN(ytd)) continue;\n\n    result.push({\n      currency: currency.toString().trim(),\n      monthly,\n      ytd,\n    });\n  }\n\n  return { headerIdx, rates: result };\n}\n\nconst regex = /(?<year>\\d{4})[ -]?(?<month>\\d{2})[^\\w]*(?<kind>booking|ending)/i;\nconst mergedRates = [];\n\nfor (const item of items) {\n  for (const [key, file] of Object.entries(item.binary)) {\n    const name  = file.fileName || '';\n    const match = name.match(regex);\n    if (!match) continue;\n\n    const { year, month, kind } = match.groups;\n    const yearMonth = `${year}-${month}`;\n    const kindLower = kind.toLowerCase();\n\n    try {\n      const buffer  = Buffer.from(file.data, 'base64');\n      const workbook = XLSX.read(buffer, { type: 'buffer' });\n      const sheet    = workbook.Sheets[workbook.SheetNames[0]];\n      const rows     = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true });\n\n      const parseFn = kindLower === 'booking' ? parseBooking : parseEnding;\n      const { rates } = parseFn(rows);\n\n      mergedRates.push({ fileName: name, kind: kindLower, yearMonth, rates });\n    } catch (err) {\n      mergedRates.push({\n        fileName: name,\n        kind:     kindLower,\n        yearMonth,\n        error:    err.message\n      });\n    }\n  }\n}\n\nreturn [{\n  binary: {\n    data: {\n      data: Buffer\n        .from(JSON.stringify(mergedRates, null, 2), 'utf8')\n        .toString('base64'),\n      mimeType: 'application/json',\n      fileName: 'merged_rates.json'\n    }\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        -300
+      ],
+      "id": "ce62b8a1-8e0b-40af-be93-3d35a7905b89",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/data/company_data.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        140,
+        -160
+      ],
+      "id": "6a3af5d3-ea9d-43aa-9ac6-3173e3824f1a",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "command": "rm -f /data/company_data.json"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        20,
+        -320
+      ],
+      "id": "52039093-0c2e-49e5-9429-64980887475c",
+      "name": "Execute Command1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Execute Command1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "605440a8-e26d-4d19-b863-8cd8c4fc9a69",
+  "meta": {
+    "instanceId": "5a0a8368508e65c9e8ded88b205f493444df4e41b67e93e0a2a1102a8e99df6b"
+  },
+  "id": "t9L1oqkrbxboAvrp",
+  "tags": []
+}

@@ -1,0 +1,941 @@
+{
+  "name": "tech",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=请根据以下汇率技术面数据，撰写一份简明的四段式分析报告。要求每段开头使用统一的 markdown 标题格式（如 #### 一、移动平均线分析），内容逻辑清晰、语言专业、术语准确：\n\n1. **移动平均线分析**：分析短期与长期均线所显示的趋势信号（如全部均线卖出信号可描述为“强烈下行趋势”）。\n2. **枢轴点分析**：列出主要的支撑位和阻力位（如 S1、R1），并说明一旦突破这些点位可能代表的市场意义。\n3. **技术指标分析**：整合如 RSI、MACD 等指标，判断当前技术面是偏多还是偏空，若存在矛盾信号需指出。\n4. **综合结论**：给出未来 1~3 日的汇率走势预测（附置信度百分比），并用白话解释以上分析，特别指出关键价位、潜在风险和建议。\n\n请使用简体中文输出，整体风格应贴近专业交易员的表述方式，输出格式如下：\n\n### 简明四段式分析报告\n\n#### 一、移动平均线分析\n（内容）\n\n#### 二、枢轴点分析\n（内容）\n\n#### 三、技术指标分析\n（内容）\n\n#### 四、综合结论\n（内容）\n\n以下为数据输入：\n{{ $json.summary }}\n",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -240,
+        -680
+      ],
+      "id": "9f6c8ffc-742d-482c-b193-0c50ce5c7fa4",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Function to convert JSON to readable text\nfunction jsonToText(obj, indent = '') {\n  if (typeof obj !== 'object' || obj === null) {\n    return String(obj);\n  }\n\n  let result = '';\n  const newIndent = indent + '  ';\n  \n  if (Array.isArray(obj)) {\n    obj.forEach((item, index) => {\n      result += `${indent}${index + 1}. ${jsonToText(item, newIndent)}\\n`;\n    });\n  } else {\n    for (const key in obj) {\n      if (obj.hasOwnProperty(key)) {\n        result += `${indent}${key}: ${jsonToText(obj[key], newIndent)}\\n`;\n      }\n    }\n  }\n  \n  return result;\n}\n\n// Get the input JSON (works with either $input or $json in n8n)\nconst inputData = $json;\n\n// Convert to text\nconst textSummary = jsonToText(inputData);\n\n// Return the result\nreturn [{\n  json: {\n    summary: textSummary\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -440,
+        -460
+      ],
+      "id": "714d0747-7d13-4095-b0d7-74313b445260",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/data/cny/analysis.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        500,
+        -560
+      ],
+      "id": "b45d6d41-d570-421a-ba9e-51846c5737d8",
+      "name": "Read/Write Files from Disk7"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        340,
+        -480
+      ],
+      "id": "4a865dcc-326b-4afb-81a9-6614e92ada6e",
+      "name": "Convert to File7"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        -400
+      ],
+      "id": "467702cc-83bc-46f0-8302-8d29eaa34e86",
+      "name": "Convert to File8"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/data/cny/tech.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        520,
+        -360
+      ],
+      "id": "ae7b7a7a-4bef-4c30-ba6a-7dc4ca12d10e",
+      "name": "Read/Write Files from Disk8"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=请根据以下汇率技术面数据，撰写一份简明的四段式分析报告。要求每段开头使用统一的 markdown 标题格式（如 #### 一、移动平均线分析），内容逻辑清晰、语言专业、术语准确：\n\n1. **移动平均线分析**：分析短期与长期均线所显示的趋势信号（如全部均线卖出信号可描述为“强烈下行趋势”）。\n2. **枢轴点分析**：列出主要的支撑位和阻力位（如 S1、R1），并说明一旦突破这些点位可能代表的市场意义。\n3. **技术指标分析**：整合如 RSI、MACD 等指标，判断当前技术面是偏多还是偏空，若存在矛盾信号需指出。\n4. **综合结论**：给出未来 1~3 日的汇率走势预测（附置信度百分比），并用白话解释以上分析，特别指出关键价位、潜在风险和建议。\n\n请使用简体中文输出，整体风格应贴近专业交易员的表述方式，输出格式如下：\n\n### 简明四段式分析报告\n\n#### 一、移动平均线分析\n（内容）\n\n#### 二、枢轴点分析\n（内容）\n\n#### 三、技术指标分析\n（内容）\n\n#### 四、综合结论\n（内容）\n\n以下为数据输入：\n{{ $json.summary }}\n",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -180,
+        -200
+      ],
+      "id": "5f47a018-b9f9-4475-94ed-2289d1e15831",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Function to convert JSON to readable text\nfunction jsonToText(obj, indent = '') {\n  if (typeof obj !== 'object' || obj === null) {\n    return String(obj);\n  }\n\n  let result = '';\n  const newIndent = indent + '  ';\n  \n  if (Array.isArray(obj)) {\n    obj.forEach((item, index) => {\n      result += `${indent}${index + 1}. ${jsonToText(item, newIndent)}\\n`;\n    });\n  } else {\n    for (const key in obj) {\n      if (obj.hasOwnProperty(key)) {\n        result += `${indent}${key}: ${jsonToText(obj[key], newIndent)}\\n`;\n      }\n    }\n  }\n  \n  return result;\n}\n\n// Get the input JSON (works with either $input or $json in n8n)\nconst inputData = $json;\n\n// Convert to text\nconst textSummary = jsonToText(inputData);\n\n// Return the result\nreturn [{\n  json: {\n    summary: textSummary\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        -160
+      ],
+      "id": "48f3ee4e-738d-4735-acd9-b2c0322b7e40",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/data/cnh/analysis.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        520,
+        -180
+      ],
+      "id": "b90d84b6-4f95-4b75-806f-e8ae92bf6abd",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        300,
+        -220
+      ],
+      "id": "b807346e-574a-4ca9-9a9c-37e8f80b236f",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        60,
+        -40
+      ],
+      "id": "03d29053-f8c8-4384-b6af-fd09e040b7d8",
+      "name": "Convert to File9"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/data/cnh/tech.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        460,
+        -20
+      ],
+      "id": "192aa3f3-4ce8-4abc-a1a0-19c1cb36b338",
+      "name": "Read/Write Files from Disk9"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=请根据以下汇率技术面数据，撰写一份简明的四段式分析报告。要求每段开头使用统一的 markdown 标题格式（如 #### 一、移动平均线分析），内容逻辑清晰、语言专业、术语准确：\n\n1. **移动平均线分析**：分析短期与长期均线所显示的趋势信号（如全部均线卖出信号可描述为“强烈下行趋势”）。\n2. **枢轴点分析**：列出主要的支撑位和阻力位（如 S1、R1），并说明一旦突破这些点位可能代表的市场意义。\n3. **技术指标分析**：整合如 RSI、MACD 等指标，判断当前技术面是偏多还是偏空，若存在矛盾信号需指出。\n4. **综合结论**：给出未来 1~3 日的汇率走势预测（附置信度百分比），并用白话解释以上分析，特别指出关键价位、潜在风险和建议。\n\n请使用简体中文输出，整体风格应贴近专业交易员的表述方式，输出格式如下：\n\n### 简明四段式分析报告\n\n#### 一、移动平均线分析\n（内容）\n\n#### 二、枢轴点分析\n（内容）\n\n#### 三、技术指标分析\n（内容）\n\n#### 四、综合结论\n（内容）\n\n以下为数据输入：\n{{ $json.summary }}\n",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -240,
+        80
+      ],
+      "id": "c6e68e18-f9a5-4f94-baac-2eb124bd0316",
+      "name": "Basic LLM Chain2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Function to convert JSON to readable text\nfunction jsonToText(obj, indent = '') {\n  if (typeof obj !== 'object' || obj === null) {\n    return String(obj);\n  }\n\n  let result = '';\n  const newIndent = indent + '  ';\n  \n  if (Array.isArray(obj)) {\n    obj.forEach((item, index) => {\n      result += `${indent}${index + 1}. ${jsonToText(item, newIndent)}\\n`;\n    });\n  } else {\n    for (const key in obj) {\n      if (obj.hasOwnProperty(key)) {\n        result += `${indent}${key}: ${jsonToText(obj[key], newIndent)}\\n`;\n      }\n    }\n  }\n  \n  return result;\n}\n\n// Get the input JSON (works with either $input or $json in n8n)\nconst inputData = $json;\n\n// Convert to text\nconst textSummary = jsonToText(inputData);\n\n// Return the result\nreturn [{\n  json: {\n    summary: textSummary\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -380,
+        60
+      ],
+      "id": "15825f8a-908c-48bd-a93c-8c14dd9cc9b5",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/data/jpy/analysis.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        500,
+        180
+      ],
+      "id": "cc00ad21-ffef-4582-8a1b-1ed852975978",
+      "name": "Read/Write Files from Disk10"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        280,
+        80
+      ],
+      "id": "0a8df954-cc7d-4225-989c-0b3838a07110",
+      "name": "Convert to File10"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -120,
+        240
+      ],
+      "id": "86778a62-31c7-4bec-b32f-415f08a87ec4",
+      "name": "Convert to File11"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/data/jpy/tech.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        100,
+        240
+      ],
+      "id": "6d21a349-c119-4bef-a437-6d941470f8dc",
+      "name": "Read/Write Files from Disk11"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=请根据以下汇率技术面数据，撰写一份简明的四段式分析报告。要求每段开头使用统一的 markdown 标题格式（如 #### 一、移动平均线分析），内容逻辑清晰、语言专业、术语准确：\n\n1. **移动平均线分析**：分析短期与长期均线所显示的趋势信号（如全部均线卖出信号可描述为“强烈下行趋势”）。\n2. **枢轴点分析**：列出主要的支撑位和阻力位（如 S1、R1），并说明一旦突破这些点位可能代表的市场意义。\n3. **技术指标分析**：整合如 RSI、MACD 等指标，判断当前技术面是偏多还是偏空，若存在矛盾信号需指出。\n4. **综合结论**：给出未来 1~3 日的汇率走势预测（附置信度百分比），并用白话解释以上分析，特别指出关键价位、潜在风险和建议。\n\n请使用简体中文输出，整体风格应贴近专业交易员的表述方式，输出格式如下：\n\n### 简明四段式分析报告\n\n#### 一、移动平均线分析\n（内容）\n\n#### 二、枢轴点分析\n（内容）\n\n#### 三、技术指标分析\n（内容）\n\n#### 四、综合结论\n（内容）\n\n以下为数据输入：\n{{ $json.summary }}\n",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -200,
+        340
+      ],
+      "id": "1f9b7afa-935d-424b-a926-bdbf24ce022e",
+      "name": "Basic LLM Chain3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Function to convert JSON to readable text\nfunction jsonToText(obj, indent = '') {\n  if (typeof obj !== 'object' || obj === null) {\n    return String(obj);\n  }\n\n  let result = '';\n  const newIndent = indent + '  ';\n  \n  if (Array.isArray(obj)) {\n    obj.forEach((item, index) => {\n      result += `${indent}${index + 1}. ${jsonToText(item, newIndent)}\\n`;\n    });\n  } else {\n    for (const key in obj) {\n      if (obj.hasOwnProperty(key)) {\n        result += `${indent}${key}: ${jsonToText(obj[key], newIndent)}\\n`;\n      }\n    }\n  }\n  \n  return result;\n}\n\n// Get the input JSON (works with either $input or $json in n8n)\nconst inputData = $json;\n\n// Convert to text\nconst textSummary = jsonToText(inputData);\n\n// Return the result\nreturn [{\n  json: {\n    summary: textSummary\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -460,
+        280
+      ],
+      "id": "c1343cd7-aa2f-4dae-b8b5-f141260cbbdc",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/data/twd/analysis.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        540,
+        360
+      ],
+      "id": "927a7b22-7b8a-497b-bcf1-390691a699b9",
+      "name": "Read/Write Files from Disk12"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        340,
+        460
+      ],
+      "id": "5330e73c-fcfa-47f1-9bdb-3ca8743718dc",
+      "name": "Convert to File12"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        200,
+        580
+      ],
+      "id": "4ffaee70-23c1-4cba-a0ab-1d130765bdb0",
+      "name": "Convert to File13"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/data/twd/tech.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        520,
+        600
+      ],
+      "id": "a8c2934d-5649-48fb-86f4-c06f24496a07",
+      "name": "Read/Write Files from Disk13"
+    },
+    {
+      "parameters": {
+        "url": "http://198.18.0.1:8000/fetch-tech/cny",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -600,
+        -380
+      ],
+      "id": "1dac75c8-49ed-4459-b2f6-c6cf37b3264c",
+      "name": "cny"
+    },
+    {
+      "parameters": {
+        "url": "http://198.18.0.1:8000/fetch-tech/cnh",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -560,
+        -80
+      ],
+      "id": "0e56df68-add9-47c6-b4ee-1daab5701474",
+      "name": "cnh"
+    },
+    {
+      "parameters": {
+        "url": "http://198.18.0.1:8000/fetch-tech/jpy",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -620,
+        80
+      ],
+      "id": "de655b3a-4a9b-4826-9001-b769c879df6f",
+      "name": "jpy"
+    },
+    {
+      "parameters": {
+        "url": "http://198.18.0.1:8000/fetch-tech/twd",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -680,
+        260
+      ],
+      "id": "601ef87e-1423-4b57-b835-39e1c6f9ef8c",
+      "name": "twd"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "=Qwen2.5-14B-Instruct",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -40,
+        140
+      ],
+      "id": "01648227-3ac1-43bb-bab5-8808055ec37d",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "PDHD4XKSoxPjd1dP",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "=Qwen2.5-14B-Instruct",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -40,
+        480
+      ],
+      "id": "2d6dd79c-5dc0-479f-b6ee-5603574269b0",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "PDHD4XKSoxPjd1dP",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 8-22/2 * * 1-5"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1080,
+        -20
+      ],
+      "id": "cf1fd8c3-5be8-4f1a-9171-1777ca29e3d8",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "command": "rm -f /data/cnh/analysis.json\nrm -f /data/cnh/tech.json"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        -100
+      ],
+      "id": "9e59b16d-fb01-404c-affe-24e3741c4940",
+      "name": "Execute Command3"
+    },
+    {
+      "parameters": {
+        "command": "rm -f /data/cny/analysis.json\nrm -f /data/cny/tech.json"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -780,
+        -340
+      ],
+      "id": "5cf1641f-bb4d-415c-96b7-737b2ba95b36",
+      "name": "Execute Command2"
+    },
+    {
+      "parameters": {
+        "command": "rm -f /data/jpy/analysis.json\nrm -f /data/cnh/tech.json"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        40
+      ],
+      "id": "a4da5c4a-2dc5-43bd-a884-48d1d032c25d",
+      "name": "Execute Command5"
+    },
+    {
+      "parameters": {
+        "command": "rm -f /data/twd/analysis.json\nrm -f /data/twd/tech.json"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -840,
+        260
+      ],
+      "id": "4fc52090-1d84-4689-b691-8aaa58bf7150",
+      "name": "Execute Command7"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "=Qwen2.5-14B-Instruct",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -120,
+        -80
+      ],
+      "id": "8f0a5ce0-021f-44a7-99dc-1cbe5e51e738",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "PDHD4XKSoxPjd1dP",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "=Qwen2.5-14B-Instruct",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -140,
+        -400
+      ],
+      "id": "7b30c323-70d6-472d-9579-4006a786667a",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "PDHD4XKSoxPjd1dP",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Convert to File7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File7": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File8": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File9": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain2": {
+      "main": [
+        [
+          {
+            "node": "Convert to File10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File10": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File11": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain3": {
+      "main": [
+        [
+          {
+            "node": "Convert to File12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File12": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File13": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk13",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "cny": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Convert to File8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "cnh": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Convert to File9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "jpy": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Convert to File11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "twd": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Convert to File13",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Execute Command3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Execute Command2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Execute Command5",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Execute Command7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command3": {
+      "main": [
+        [
+          {
+            "node": "cnh",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command2": {
+      "main": [
+        [
+          {
+            "node": "cny",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command5": {
+      "main": [
+        [
+          {
+            "node": "jpy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command7": {
+      "main": [
+        [
+          {
+            "node": "twd",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "85db6542-e4b5-4d67-882e-2dd5b22b8b61",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5a0a8368508e65c9e8ded88b205f493444df4e41b67e93e0a2a1102a8e99df6b"
+  },
+  "id": "yGwelpf15bt3o4Wg",
+  "tags": []
+}
